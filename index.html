@@ -1,60 +1,95 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Stock Calculator</title>
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 420px;
-      margin: 60px auto;
-      padding: 20px;
-    }
-    input, button {
-      padding: 12px;
-      margin: 8px 0;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    button {
-      background: #1769aa;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfolio Dashboard</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;padding:20px;background:#f5f7fb;color:#172033}
+h1{margin-bottom:5px}
+small{color:#64748b}
+.cards{display:flex;gap:15px;margin:25px 0}
+.card{background:white;padding:20px;border-radius:10px;flex:1}
+.card strong{display:block;font-size:25px;margin-top:10px}
+table{width:100%;border-collapse:collapse;background:white}
+th,td{padding:14px;text-align:right;border-bottom:1px solid #eee}
+th:first-child,td:first-child{text-align:left}
+form{background:white;padding:20px;border-radius:10px;margin-top:25px}
+input{padding:10px;margin:6px;width:130px;max-width:90%;box-sizing:border-box}
+button{background:#1769aa;color:white;border:0;padding:11px 17px;cursor:pointer;border-radius:5px}
+.positive{color:green}.negative{color:#c62828}
+@media(max-width:600px){.cards{flex-direction:column}input{width:100%;margin:6px 0}th,td{padding:8px;font-size:12px}}
+</style>
 </head>
 <body>
-  <h2>Stock Position Calculator</h2>
-
-  <label>Stock Price ($)</label>
-  <input id="price" type="number" value="150">
-
-  <label>Number of Shares</label>
-  <input id="shares" type="number" value="100">
-
-  <button onclick="calculate()">Calculate</button>
-
-  <h2 id="result"></h2>
-
-  <script>
-    function calculate() {
-      const price =
-        Number(document.getElementById("price").value);
-      const shares =
-        Number(document.getElementById("shares").value);
-
-      const value = price * shares;
-
-      document.getElementById("result").innerText =
-        "Position Value: " +
-        value.toLocaleString("en-US", {
-          style: "currency",
-          currency: "USD"
-        });
-    }
-  </script>
+<h1>Portfolio Dashboard</h1>
+<small>Manual prices — not live market data</small>
+<div class="cards">
+<div class="card">Market Value<strong id="total">$0.00</strong></div>
+<div class="card">Unrealized P&L<strong id="pnl">$0.00</strong></div>
+</div>
+<table>
+<thead><tr><th>Symbol</th><th>Shares</th><th>Value</th><th>P&L</th><th></th></tr></thead>
+<tbody id="positions"></tbody>
+</table>
+<form id="addForm">
+<h3>Add Position</h3>
+<input id="symbol" placeholder="Ticker" required>
+<input id="shares" type="number" step="any" min="0.000001" placeholder="Shares" required>
+<input id="cost" type="number" step="any" min="0" placeholder="Cost/share" required>
+<input id="price" type="number" step="any" min="0" placeholder="Current price" required>
+<button type="submit">Add Position</button>
+</form>
+<script>
+let positions=JSON.parse(localStorage.getItem("portfolio")||"null")||[
+{symbol:"AAPL",shares:100,cost:190,price:205},
+{symbol:"MSFT",shares:50,cost:420,price:435},
+{symbol:"NVDA",shares:200,cost:130,price:145}
+];
+const usd=n=>n.toLocaleString("en-US",{style:"currency",currency:"USD"});
+function render(){
+let total=0,pnl=0;
+const tbody=document.getElementById("positions");
+tbody.replaceChildren();
+positions.forEach((p,i)=>{
+const value=p.shares*p.price;
+const profit=p.shares*(p.price-p.cost);
+total+=value;pnl+=profit;
+const tr=document.createElement("tr");
+[p.symbol,p.shares,usd(value),usd(profit)].forEach((v,j)=>{
+const td=document.createElement("td");
+td.textContent=v;
+if(j===3)td.className=profit>=0?"positive":"negative";
+tr.appendChild(td);
+});
+const td=document.createElement("td");
+const btn=document.createElement("button");
+btn.textContent="×";
+btn.onclick=()=>{positions.splice(i,1);save();};
+td.appendChild(btn);tr.appendChild(td);tbody.appendChild(tr);
+});
+document.getElementById("total").textContent=usd(total);
+const p=document.getElementById("pnl");
+p.textContent=usd(pnl);
+p.className=pnl>=0?"positive":"negative";
+}
+function save(){
+localStorage.setItem("portfolio",JSON.stringify(positions));
+render();
+}
+document.getElementById("addForm").onsubmit=e=>{
+e.preventDefault();
+const symbol=document.getElementById("symbol").value.trim().toUpperCase();
+const shares=Number(document.getElementById("shares").value);
+const cost=Number(document.getElementById("cost").value);
+const price=Number(document.getElementById("price").value);
+if(!symbol||!Number.isFinite(shares)||shares<=0||!Number.isFinite(cost)||cost<0||!Number.isFinite(price)||price<0)return;
+positions.push({symbol,shares,cost,price});
+e.target.reset();save();
+};
+render();
+</script>
 </body>
 </html>
+  
