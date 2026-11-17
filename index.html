@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stock Calculator</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 420px;
+      margin: 60px auto;
+      padding: 20px;
+    }
+    input, button {
+      padding: 12px;
+      margin: 8px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background: #1769aa;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>Stock Position Calculator</h2>
+
+  <label>Stock Price ($)</label>
+  <input id="price" type="number" value="150">
+
+  <label>Number of Shares</label>
+  <input id="shares" type="number" value="100">
+
+  <button onclick="calculate()">Calculate</button>
+
+  <h2 id="result"></h2>
+
+  <script>
+    function calculate() {
+      const price =
+        Number(document.getElementById("price").value);
+      const shares =
+        Number(document.getElementById("shares").value);
+
+      const value = price * shares;
+
+      document.getElementById("result").innerText =
+        "Position Value: " +
+        value.toLocaleString("en-US", {
+          style: "currency",
+          currency: "USD"
+        });
+    }
+  </script>
+</body>
+</html>
